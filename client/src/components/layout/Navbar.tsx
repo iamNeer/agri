@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Link } from "react-scroll";
+import { Link, useLocation } from "wouter";
 import { Menu, X, Leaf } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
@@ -7,6 +7,7 @@ import { motion, AnimatePresence } from "framer-motion";
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [location] = useLocation();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -17,53 +18,57 @@ export default function Navbar() {
   }, []);
 
   const navLinks = [
-    { name: "About", to: "about" },
-    { name: "Features", to: "features" },
-    { name: "Architecture", to: "architecture" },
-    { name: "Tech Stack", to: "tech-stack" },
-    { name: "Team", to: "team" },
-    { name: "Demo", to: "demo" },
-    { name: "Contact", to: "contact" },
+    { name: "About", href: "/about" },
+    { name: "Features", href: "/features" },
+    { name: "Architecture", href: "/architecture" },
+    { name: "Tech Stack", href: "/tech-stack" },
+    { name: "Team", href: "/team" },
+    { name: "Demo", href: "/demo" },
+    { name: "Contact", href: "/contact" },
   ];
 
   return (
     <nav
       className={`fixed top-0 w-full z-50 transition-all duration-300 ${
-        scrolled ? "glass py-2" : "bg-transparent py-4"
+        scrolled || location !== "/" ? "glass py-2 border-b border-border/50" : "bg-transparent py-4"
       }`}
     >
       <div className="container-width flex items-center justify-between">
-        <Link
-          to="hero"
-          smooth={true}
-          duration={500}
-          className="cursor-pointer flex items-center gap-2 group"
-        >
-          <div className="bg-primary p-1.5 rounded-lg group-hover:scale-105 transition-transform">
-            <Leaf className="w-6 h-6 text-white" />
+        <Link href="/">
+          <div className="cursor-pointer flex items-center gap-2 group">
+            <div className="bg-primary p-1.5 rounded-lg group-hover:scale-105 transition-transform">
+              <Leaf className="w-6 h-6 text-white" />
+            </div>
+            <span className="font-display font-bold text-2xl tracking-tight text-foreground">
+              Agri<span className="text-primary">Vision</span>
+            </span>
           </div>
-          <span className="font-display font-bold text-2xl tracking-tight text-foreground">
-            Agri<span className="text-primary">Vision</span>
-          </span>
         </Link>
 
         {/* Desktop Nav */}
         <div className="hidden md:flex items-center gap-8">
           {navLinks.map((link) => (
-            <Link
-              key={link.name}
-              to={link.to}
-              smooth={true}
-              duration={500}
-              offset={-70}
-              className="text-sm font-medium text-muted-foreground hover:text-primary cursor-pointer transition-colors"
-            >
-              {link.name}
+            <Link key={link.name} href={link.href}>
+              <span 
+                className={`text-sm font-medium cursor-pointer transition-colors relative ${
+                  location === link.href ? "text-primary" : "text-muted-foreground hover:text-primary"
+                }`}
+              >
+                {link.name}
+                {location === link.href && (
+                  <motion.div
+                    layoutId="underline"
+                    className="absolute left-0 right-0 -bottom-1 h-0.5 bg-primary"
+                  />
+                )}
+              </span>
             </Link>
           ))}
-          <Button className="bg-primary hover:bg-primary/90 text-white shadow-lg shadow-primary/20 rounded-full px-6">
-            Get Started
-          </Button>
+          <Link href="/demo">
+            <Button className="bg-primary hover:bg-primary/90 text-white shadow-lg shadow-primary/20 rounded-full px-6">
+              Get Started
+            </Button>
+          </Link>
         </div>
 
         {/* Mobile Toggle */}
@@ -86,21 +91,22 @@ export default function Navbar() {
           >
             <div className="flex flex-col p-4 gap-4">
               {navLinks.map((link) => (
-                <Link
-                  key={link.name}
-                  to={link.to}
-                  smooth={true}
-                  duration={500}
-                  offset={-70}
-                  onClick={() => setIsOpen(false)}
-                  className="text-base font-medium text-foreground py-2 border-b border-border/50 hover:text-primary"
-                >
-                  {link.name}
+                <Link key={link.name} href={link.href}>
+                  <span
+                    onClick={() => setIsOpen(false)}
+                    className={`block text-base font-medium py-2 border-b border-border/50 ${
+                      location === link.href ? "text-primary" : "text-foreground hover:text-primary"
+                    }`}
+                  >
+                    {link.name}
+                  </span>
                 </Link>
               ))}
-              <Button className="w-full bg-primary text-white rounded-full mt-2">
-                Get Started
-              </Button>
+              <Link href="/demo">
+                 <Button className="w-full bg-primary text-white rounded-full mt-2" onClick={() => setIsOpen(false)}>
+                  Get Started
+                </Button>
+              </Link>
             </div>
           </motion.div>
         )}
