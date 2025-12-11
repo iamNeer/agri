@@ -2,6 +2,39 @@ import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { serveStatic } from "./static";
 import { createServer } from "http";
+import { spawn, ChildProcess } from "child_process";
+import path from "path";
+import { fileURLToPath } from "url";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+let djangoProcess: ChildProcess | null = null;
+
+// Only start Django in development mode
+if (process.env.NODE_ENV !== "production") {
+  const djangoPath = path.resolve(__dirname, "..", "django_backend");
+  djangoProcess = spawn("python", ["manage.py", "runserver", "0.0.0.0:8000"], {
+    cwd: djangoPath,
+    stdio: "inherit",
+  });
+
+  djangoProcess.on("error", (err) => {
+    console.error("Failed to start Django:", err);
+  });
+
+  process.on("exit", () => {
+    if (djangoProcess) {
+      djangoProcess.kill();
+    }
+  });
+
+  process.on("SIGINT", () => {
+    if (djangoProcess) {
+      djangoProcess.kill();
+    }
+    process.exit();
+  });
+}
 
 const app = express();
 const httpServer = createServer(app);
